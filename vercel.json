@@ -69,8 +69,8 @@
       "permanent": false
     },
     {
-      "source": "/whitepaper/:path*",
-      "destination": "https://protocol.waronsaas.com/whitepaper/:path*",
+      "source": "/whitepaper/(.+?)/?",
+      "destination": "https://protocol.waronsaas.com/whitepaper/$1",
       "permanent": false
     },
     {
