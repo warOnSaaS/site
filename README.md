@@ -1,18 +1,40 @@
 # warOnSaaS site
 
-The source of waronsaas.com, and the home of the **wOS UI kit**.
+The hub for warOnSaaS's open-source projects: **agent-kanban** and **the UI kit**.
 
-- `kit/wos.css`: the UI kit. One stylesheet, plain HTML classes, no build step. Every component is shown at `/kit/`.
-- `src/`: the pages, as plain template functions. `build.mjs` writes `dist/`.
-- `/agent-kanban/` renders the example board with agent-kanban's own renderer and example workspace.
+- `/` home: each project with a live preview.
+- `/kit/` the UI kit as a component library. Pick a component in the sidebar, watch it live in the preview (answers stream in), switch theme, copy the code. Every component has its own address, `/kit/<id>/`.
+- `/agent-kanban/` what agent-kanban does, how to join and how to run your own, with the example board live.
+
+## The UI kit
+
+The kit is warOnSaaS/ui-design. Its files are not copied by hand: `scripts/sync-ui.mjs` copies them from a ui-design checkout into `vendor/ui-design/`, and the build serves them under `/ui/`. The preview runs on them unchanged (the agent layout, `renderBlock`, `enhance`, the themes and fonts).
 
 ```
-npm install     # pulls agent-kanban from GitHub for the example board
+node scripts/sync-ui.mjs [path-to-ui-design]   # default $UI_DESIGN_DIR, then ../waronsaas-ui-design
+```
+
+`vendor/` is git-ignored because ui-design's repo is private and this one is public. The build runs the sync itself when `vendor/` is missing, so a build needs a ui-design checkout next to this repo (or `UI_DESIGN_DIR`).
+
+- `src/kit-components.mjs` every component in the library and the questions the agent pieces answer.
+- `src/kit-options.mjs` the themes, style switches and speeds the toolbar offers. Add an entry and it shows up in the toolbar and the preview.
+- `ui-themes/field.css` the Field theme, served next to ui-design's own themes.
+- `src/stage.js` the live preview page (`/kit/stage/`), loaded in an iframe.
+
+## wOS kit
+
+`kit/wos.css` is the stylesheet agent-kanban uses. agent-kanban copies it with its own `scripts/sync-kit.mjs`, so this file stays its single source. It is served at `/wos.css` and styles the example board.
+
+## Build and deploy
+
+```
+npm install     # agent-kanban from GitHub, for the example board
 npm run build   # dist/
+vercel build --prod && vercel deploy --prebuilt --prod --yes
 ```
 
-Projects that use the kit (agent-kanban) copy `kit/wos.css` in with their own sync script, so this file is the single source.
+Deploy prebuilt: Vercel's own build machines have no ui-design checkout.
 
-Rules: monochrome, two monospace faces (JetBrains Mono, Geist Mono), square corners, no colour, no italic, no text-transform. Capitals are written in the source so warOnSaaS and wOS are never re-cased. No em dashes.
+Rules: no em dashes (the build fails on one). Plain words.
 
 Apache-2.0.

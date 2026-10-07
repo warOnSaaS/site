@@ -1,0 +1,58 @@
+/* ui-design theme: field
+   The warOnSaaS fun theme. Midnight's calm and type, with a little game colour on top:
+   a gold accent, green for good, pink for tags, the pixel tank as the agent's face.
+   Light and dark: the page sets data-mode="light" or "dark" on <html>. */
+@import url(./midnight.css);
+
+:root{
+  --ui-bg:#0b0d12;--ui-surface:#11141b;--ui-surface-2:#171b24;--ui-chip:rgba(255,255,255,.03);
+  --ui-ink:#f6f5f0;--ui-ink-2:#a8acb8;--ui-ink-3:#6f7482;
+  --ui-line:rgba(255,255,255,.08);--ui-line-2:rgba(255,255,255,.14);
+  --ui-accent:#ffd84d;--ui-accent-line:rgba(255,216,77,.5);--ui-accent-wash:rgba(255,216,77,.07);--ui-ask-ink:#fff3c4;
+  --ui-good:#4ade80;--ui-warn:#ffd84d;--ui-bad:#f472b6;
+  --ui-tag-bg:rgba(244,114,182,.12);--ui-tag-ink:#f9a8d4;
+  --ui-avatar:url(../logo.svg);
+  --f1:#ffd84d;--f2:#4ade80;--f3:#f472b6;--f4:#7dd3fc;
+  --grid:rgba(255,255,255,.028);--glow:rgba(255,216,77,.07);
+}
+:root[data-mode=light]{
+  --ui-bg:#fbfaf6;--ui-surface:#ffffff;--ui-surface-2:#f3f2ec;--ui-chip:#fff;
+  --ui-ink:#15151a;--ui-ink-2:#575b66;--ui-ink-3:#8b8f99;
+  --ui-line:rgba(20,20,30,.09);--ui-line-2:rgba(20,20,30,.16);
+  --ui-accent:#c58a00;--ui-accent-line:rgba(197,138,0,.5);--ui-accent-wash:rgba(197,138,0,.08);--ui-ask-ink:#5c4100;
+  --ui-good:#16a34a;--ui-warn:#c58a00;--ui-bad:#db2777;
+  --ui-tag-bg:rgba(219,39,119,.09);--ui-tag-ink:#be185d;
+  --ui-scrim:rgba(20,20,30,.35);
+  --f1:#e0a400;--f2:#16a34a;--f3:#db2777;--f4:#0284c7;
+  --grid:rgba(20,20,30,.045);--glow:rgba(224,164,0,.10);
+}
+body{background:
+  radial-gradient(700px 420px at 50% 38%,var(--glow),transparent 70%),
+  linear-gradient(var(--grid) 1px,transparent 1px) 0 0/28px 28px,
+  linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/28px 28px,
+  var(--ui-bg)}
+:root[data-mode=light] .ui-home h1{background:none;color:var(--ui-ink)}
+
+/* the agent's face is the pixel tank */
+.ui-av{color:transparent;background:var(--ui-avatar) center/20px no-repeat,var(--ui-surface-2);image-rendering:pixelated}
+.ui-caret{background:var(--f2)}
+.ui-step i{border-top-color:var(--f1)}
+
+/* one square of game colour per prompt */
+.ui-prompts a,.ui-prompts button{display:inline-flex;align-items:center;gap:9px;transition:transform .15s,border-color .15s}
+.ui-prompts a::before,.ui-prompts button::before{content:"";width:7px;height:7px;flex:none;border-radius:1px;background:var(--f1)}
+.ui-prompts>:nth-child(2)::before{background:var(--f2)}
+.ui-prompts>:nth-child(3)::before{background:var(--f3)}
+.ui-prompts>:nth-child(4)::before{background:var(--f4)}
+.ui-prompts a:hover,.ui-prompts button:hover{transform:translateY(-2px)}
+.ui-send{background:var(--f1);color:#1a1300}
+.ui-btn{box-shadow:0 2px 0 var(--f1)}
+
+/* figures carry a colour square each */
+.ui-stats b::before{content:"";display:inline-block;width:7px;height:7px;margin:0 9px 7px 0;border-radius:1px;background:var(--f1)}
+.ui-stats div:nth-child(4n+2) b::before{background:var(--f2)}
+.ui-stats div:nth-child(4n+3) b::before{background:var(--f3)}
+.ui-stats div:nth-child(4n) b::before{background:var(--f4)}
+.ui-tool b{color:var(--f2)}
+.ui-gallery a{transition:transform .15s,border-color .15s}
+.ui-gallery a:hover{transform:translateY(-3px)}
