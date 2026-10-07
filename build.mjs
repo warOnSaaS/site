@@ -36,7 +36,8 @@ const { homePage } = await import('./src/home.mjs');
 const { kitPage, stagePage, KIT_IDS, kitData } = await import('./src/kit.mjs');
 const { agentKanbanPage, boardPage } = await import('./src/agent-kanban.mjs');
 const { crmPage, scannerPage } = await import('./src/project-pages.mjs');
-const { PROJECTS, SUITE, repoStatus } = await import('./src/projects.mjs');
+const { PROJECTS, repoStatus, isPublic } = await import('./src/projects.mjs');
+const { appPage, APPS } = await import('./src/app-pages.mjs');
 
 // the kit's component data, one fingerprinted file the kit page fetches
 {
@@ -48,6 +49,15 @@ const { PROJECTS, SUITE, repoStatus } = await import('./src/projects.mjs');
 
 // Which repos are public, so no page links to a 404.
 const repos = await repoStatus();
+// Decks and Sheets are being built. They get a link only once their site answers.
+const upcoming = {};
+for (const key of ['decks', 'sheets']) {
+  const url = `https://${key}.waronsaas.com/`;
+  const live = await fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(8000) }).then((r) => r.status === 200).catch(() => false);
+  const repo = `https://github.com/warOnSaaS/${key}`;
+  upcoming[key] = { url, live, repo, repoPublic: live && await isPublic(repo) };
+}
+console.log('upcoming: ' + Object.entries(upcoming).map(([k, v]) => `${k} ${v.live ? 'live' : 'building'}`).join(', '));
 console.log('public repos: ' + Object.entries(repos).map(([k, v]) => `${k} ${v ? 'yes' : 'no'}`).join(', '));
 
 // Social cards: redraw any whose words changed when Playwright is here (never on Vercel), then ship og/.
@@ -61,7 +71,8 @@ fs.cpSync('og', path.join(out, 'og'), { recursive: true, filter: (f) => !f.endsW
 fs.cpSync('img', path.join(out, 'img'), { recursive: true });
 
 write('wos.css', fs.readFileSync('kit/wos.css', 'utf8'));
-write('index.html', homePage({ repos }));
+write('index.html', homePage({ repos, upcoming }));
+for (const id of Object.keys(APPS)) write(`${id}/index.html`, appPage(id, repos));
 write('crm/index.html', crmPage({ repoPublic: repos.crm }));
 write('scanner/index.html', scannerPage({ repoPublic: repos.scanner }));
 write('kit/index.html', kitPage(KIT_IDS[0]));
@@ -71,23 +82,31 @@ write('agent-kanban/index.html', agentKanbanPage());
 write('agent-kanban/board/index.html', await boardPage());
 const { SITE_URL, SCANNER_URL, GITHUB } = await import('./src/layout.mjs');
 write('robots.txt', `User-agent: *\nAllow: /\nDisallow: /kit/stage/\nDisallow: /agent-kanban/board/\n\nSitemap: ${SITE_URL}/sitemap.xml\n`);
-const PAGES = ['/', '/agent-kanban/', '/crm/', '/scanner/', ...KIT_IDS.map((id) => `/kit/${id}/`)];
+const PAGES = ['/', '/suite/', '/crm/', '/email/', '/chat/', '/meet/', '/agent-kanban/', '/scanner/', ...KIT_IDS.map((id) => `/kit/${id}/`)];
 write('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${PAGES.map((p) => `  <url><loc>${SITE_URL}${p}</loc></url>`).join('\n')}\n</urlset>\n`);
 const P = PROJECTS;
+const line = (id, extra) => `- [${P[id].name}](${SITE_URL}${P[id].path}): ${P[id].about} ${P[id].license}. ${extra}${repos[id] ? ` Source: ${P[id].repo}` : ' Source opens on GitHub soon.'}`;
 write('llms.txt', `# warOnSaaS
 
-> warOnSaaS builds free, open-source replacements for the software businesses rent by the month. Every project can be self-hosted for free, or hosted by us. AI agents can drive every project over MCP, with the same tools the screens use.
+> warOnSaaS builds wOS: free, open-source software that replaces the apps a business rents by the month, in one app a team and its AI agents both work in. Every app can be self-hosted for free, or hosted by us at cost plus a fair margin, shown openly. AI agents can drive every app over MCP (at /mcp on any install), with the same tools the screens use.
 
-## Projects
+## wOS, the suite
 
-- [agent-kanban](${SITE_URL}/agent-kanban/): ${P['agent-kanban'].about} ${P['agent-kanban'].license}. Create a hosted board: ${P['agent-kanban'].hosted}. Source: ${P['agent-kanban'].repo}
-- [CRM](${SITE_URL}/crm/): ${P.crm.about} ${P.crm.license}. Live demo with fictional data: ${P.crm.demo}. MCP endpoint on any install: /mcp.${repos.crm ? ` Source: ${P.crm.repo}` : ' Source opens on GitHub soon.'}
-- [Scanner](${SITE_URL}/scanner/): ${P.scanner.about} ${P.scanner.license}. Use it: ${P.scanner.hosted}. MCP: ${P.scanner.hosted}mcp. Command line: npx -y github:warOnSaaS/scanner example.com. Source: ${P.scanner.repo}
+${line('suite', `Live demo: ${P.suite.live}.`)}
+
+## The apps
+
+${line('crm', `Replaces Salesforce. Live demo with fictional data: ${P.crm.demo}.`)}
+${line('email', `Replaces Gmail and Superhuman. Live demo with a made-up mailbox: ${P.email.live}.`)}
+${line('chat', `Replaces Slack. Live demo, a fictional dental practice: ${P.chat.live}.`)}
+${line('meet', `Replaces Zoom. Calls of up to 4 people need no server for media. Live: ${P.meet.live}.`)}
+${line('agent-kanban', `Replaces Trello and Asana for people plus agents. Create a hosted board: ${P['agent-kanban'].hosted}.`)}
+${['decks', 'sheets'].map((k) => `- ${k === 'decks' ? 'Decks (replaces PowerPoint and Google Slides)' : 'Sheets (replaces Excel and Google Sheets)'}: ${upcoming[k].live ? `live at ${upcoming[k].url}` : 'being built now'}.`).join('\n')}
+
+## Free tools
+
+${line('scanner', `Use it: ${P.scanner.hosted}. MCP: ${P.scanner.hosted}mcp. Command line: npx -y github:warOnSaaS/scanner example.com.`)}
 - [UI kit](${SITE_URL}/kit/): ${P.kit.about} ${P.kit.license}. Every component has its own page, /kit/<id>/.
-
-## Coming
-
-- wOS, the suite: ${SUITE.line} The CRM and the board load inside it, and each app switches on or off per team.${repos.suite ? ` Source: ${SUITE.repo}` : ''}
 
 ## Contact
 

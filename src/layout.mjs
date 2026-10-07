@@ -7,6 +7,10 @@ export const SITE_URL = 'https://waronsaas.com';
 export const SCANNER_URL = 'https://scanner.waronsaas.com';
 export const CRM_URL = 'https://crm.waronsaas.com';
 export const KANBAN_URL = 'https://kanban.waronsaas.com';
+export const CHAT_URL = 'https://chat.waronsaas.com';
+export const MAIL_URL = 'https://mail.waronsaas.com';
+export const MEET_URL = 'https://meet.waronsaas.com';
+export const APP_URL = 'https://app.waronsaas.com';
 export const GITHUB = 'https://github.com/warOnSaaS';
 export const ORG = { '@type': 'Organization', '@id': 'https://waronsaas.com/#org', name: 'warOnSaaS', url: 'https://waronsaas.com/', logo: 'https://waronsaas.com/favicon.svg', email: 'hello@waronsaas.com', sameAs: ['https://github.com/warOnSaaS'] };
 
@@ -20,6 +24,26 @@ export function tank(cls = 'tank') {
     .replace(/<rect x="4" y="2"/, '<rect class="flag flag-2" x="4" y="2"');
   return svg.replace('<svg ', `<svg class="${cls}" `).trim();
 }
+
+// Every product, in the order a business buyer cares about. The header menu and the footer read it.
+const MENU = [
+  ['/suite/', 'wOS', 'Every app in one, with your agents', 'suite'],
+  ['/crm/', 'CRM', 'Replaces Salesforce', 'crm'],
+  ['/email/', 'Email', 'Replaces Gmail and Superhuman', 'email'],
+  ['/chat/', 'Chat', 'Replaces Slack', 'chat'],
+  ['/meet/', 'Meetings', 'Replaces Zoom', 'meet'],
+  ['/agent-kanban/', 'Board', 'Replaces Trello and Asana', 'agent-kanban'],
+  ['/scanner/', 'Scanner', 'Can AI read your website?', 'scanner'],
+  ['/kit/', 'UI kit', 'Building blocks for websites', 'kit'],
+];
+
+// A real screenshot in both themes. The one that matches the page's theme shows; the other is never fetched.
+export const themedShot = (name, alt, eager = false, w = 1440, h = 900) => ['light', 'dark'].map((t) =>
+  `<img class="th-${t}" src="/img/${name}-${t}.webp" width="${w}" height="${h}" alt="${esc(alt)}" loading="${eager && t === 'light' ? 'eager' : 'lazy'}" decoding="async">`).join('');
+
+const GH = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.8.06 1.23.83 1.23.83.72 1.22 1.88.87 2.34.66.07-.52.28-.87.5-1.07-1.78-.2-3.65-.89-3.65-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.66 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 8 0z"/></svg>';
+// The three actions every product shows: open it, host it yourself (same weight), and the code.
+export const actions = ({ open, self, repo }) => `<div class="acts"><a class="btn" href="${open[1]}">${open[0]}</a><a class="btn btn-self" href="${self}">Host it yourself, free</a>${repo ? `<a class="btn btn-ghost btn-gh" href="${repo}">${GH}GitHub</a>` : '<span class="btn btn-ghost btn-gh is-off" title="The source opens on GitHub soon">Code soon</span>'}</div>`;
 
 const SUN = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>';
 const MOON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.6A8.2 8.2 0 0 1 9.4 4a8.2 8.2 0 1 0 10.6 10.6z"/></svg>';
@@ -52,14 +76,16 @@ ${head}
 <body class="${page}">
 <header class="top"><div class="top-in">
   <a class="brand" href="/" aria-label="warOnSaaS home">${tank()}<span>wOS</span></a>
-  <nav class="nav" aria-label="Main">${link('/agent-kanban/', 'agent-kanban', 'agent-kanban')}${link('/crm/', 'CRM', 'crm')}${link('/scanner/', 'Scanner', 'scanner')}${link('/kit/', 'UI kit', 'kit')}<a href="${GITHUB}" class="nav-gh">GitHub</a>
+  <nav class="nav" aria-label="Main">${link('/suite/', 'wOS', 'suite')}
+    <details class="menu"><summary>Products</summary><div class="menu-p">${MENU.map(([href, name, what, key]) => `<a href="${href}"${current === key ? ' aria-current="page"' : ''}><b>${name}</b><span>${what}</span></a>`).join('')}</div></details>
+    <a href="${GITHUB}" class="nav-gh">GitHub</a>
     <button class="mode" type="button" data-mode-toggle aria-label="Switch light or dark">${SUN}${MOON}</button>
   </nav>
 </div></header>
 ${body}
 ${page === 'is-kit' ? '' : `<footer class="foot"><div class="foot-in">
   <span class="foot-l">${tank('tank tank-sm')}warOnSaaS. Free and open source.</span>
-  <nav class="foot-links" aria-label="Projects"><a href="/agent-kanban/">agent-kanban</a><a href="/crm/">CRM</a><a href="/scanner/">Scanner</a><a href="/kit/">UI kit</a><a href="/llms.txt">llms.txt</a><a href="${GITHUB}">GitHub</a><a href="mailto:hello@waronsaas.com">hello@waronsaas.com</a></nav>
+  <nav class="foot-links" aria-label="Projects">${MENU.map(([href, name]) => `<a href="${href}">${name}</a>`).join('')}<a href="/llms.txt">llms.txt</a><a href="${GITHUB}">GitHub</a><a href="mailto:hello@waronsaas.com">hello@waronsaas.com</a></nav>
   <span class="foot-r">No subscriptions were renewed in the making of this site.</span>
 </div></footer>`}
 <script src="${ASSET('site.js')}" defer></script>

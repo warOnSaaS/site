@@ -13,7 +13,11 @@ import { pathToFileURL } from 'node:url';
 const { PROJECTS } = await import('../src/projects.mjs');
 
 export const CARDS = {
-  home: { kicker: 'Free and open source', title: 'Free tools that replace the software you rent.', line: 'A CRM, a board for people and AI agents, a website scanner and a UI kit. Host them yourself for free, or let us host them.', color: 'g1' },
+  home: { kicker: 'wOS · free and open source', title: 'Run your whole business with AI agents.', line: 'CRM, email, chat, meetings and a team board in one app. Host it yourself for free, or let us run it.', color: 'g1' },
+  suite: { kicker: 'wOS · the suite', title: 'One app for your team and its AI agents.', line: 'Agents, board, CRM, Chat, Email and Meetings. Turn apps on and off, use any model, host it yourself free.', color: 'g1' },
+  chat: { kicker: 'Chat · replaces Slack', title: 'Team chat your team owns.', line: 'Channels, threads, search and files, with AI agents you can @mention. Self-host it with one command.', color: 'g2' },
+  email: { kicker: 'Email · replaces Gmail and Superhuman', title: 'Fast email for small teams.', line: 'Sorted for you, AI drafts you send yourself, and one address your team runs wOS from.', color: 'g4' },
+  meet: { kicker: 'Meetings · replaces Zoom', title: 'Video meetings with no server in the middle.', line: 'Encrypted end to end. Calls of up to 4 people go straight between browsers. Webinars built in.', color: 'g3' },
   'agent-kanban': { kicker: 'Unit 01 · agent-kanban', title: 'A shared to-do board for people and their AI agents.', line: 'Tasks, hand-offs and reviews live in your own GitHub repo, worked from Claude, ChatGPT, Claude Code or Codex.', color: 'g2' },
   kit: { kicker: 'Unit 02 · UI kit', title: 'The building blocks of a website people ask instead of scroll.', line: 'Streaming answers, cards, tables and forms in plain HTML, CSS and JavaScript. Eight colour schemes.', color: 'g1' },
   scanner: { kicker: 'Unit 03 · Scanner', title: 'Can AI assistants read your website?', line: 'A free scan scored out of 100, with the fix for every gap. On the web, in a terminal, or from your agent.', color: 'g4' },

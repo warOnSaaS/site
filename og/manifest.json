@@ -1,7 +1,11 @@
 {
-  "home": "645fd261f1bd",
-  "agent-kanban": "596904cd6f1a",
-  "kit": "5772308bacd6",
-  "scanner": "fc80de6b30b8",
-  "crm": "da68be5d95ea"
+  "home": "a9947bb347f9",
+  "agent-kanban": "ad18e6d8ffca",
+  "kit": "7d2f254b3b9a",
+  "scanner": "d8134d945087",
+  "crm": "e9722218f1ba",
+  "suite": "c5d4dd8b1b0a",
+  "chat": "5c6b18922f25",
+  "email": "6b9bcfb73596",
+  "meet": "511923de84f8"
 }
