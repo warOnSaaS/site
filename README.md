@@ -4,7 +4,7 @@ The hub for warOnSaaS's open-source projects: **agent-kanban** and **the UI kit*
 
 - `/` home: each project with a live preview.
 - `/kit/` the UI kit as a component library. Pick a component in the sidebar, watch it live in the preview (answers stream in), switch theme, copy the code. Every component has its own address, `/kit/<id>/`.
-- `/agent-kanban/` what agent-kanban does, the example board live, and app tiles that connect to the public demo board (agent-kanban-demo.vercel.app, a `DEMO_BOARD=1` deploy of agent-kanban). Setup steps live in the agent-kanban README, not here.
+- `/agent-kanban/` what agent-kanban does, the example board live, and the two ways to run it: Create your board (the hosted agent-kanban) or Host it yourself, free (the agent-kanban README). The app tiles live on each team's own board, not here.
 
 ## The UI kit
 

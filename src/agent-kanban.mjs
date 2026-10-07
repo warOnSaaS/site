@@ -79,33 +79,10 @@ ${board}
 </html>`;
 }
 
-// The "use it" moment: the same app tiles every board's front page shows, pointed at the public demo board
-// (agent-kanban with DEMO_BOARD=1: a made-up team, no sign-in). Logos and links come from agent-kanban itself.
-const DEMO = 'https://agent-kanban-demo.vercel.app';
-const OWN = `${REPO}#get-your-own-board`;
-const { CLAUDE, OPENAI, BOARD } = await import(path.join(AK, 'lib/logos.mjs'));
-const { claudeInstallLink, connectLine, CHATGPT_APPS } = await import(path.join(AK, 'lib/connect.mjs'));
-
-const copyCmd = (line) => `<div class="ak-cmd"><code>${esc(line)}</code><button type="button" class="btn ak-copy" data-copy="${esc(line)}" aria-label="Copy the command">Copy</button></div>`;
-const TILES = [
-  ['Claude', 'Web, desktop and phone', CLAUDE, false, `<a class="btn" href="${esc(claudeInstallLink('agent-kanban demo', `${DEMO}/mcp`))}" target="_blank" rel="noopener" data-copy-also="${DEMO}/mcp" data-note="Opening Claude. The address is copied too.">Add to Claude</a>`, 'Click Add, then Connect.'],
-  ['ChatGPT', 'Web, with developer mode on', OPENAI, false, `<a class="btn" href="${CHATGPT_APPS}" target="_blank" rel="noopener" data-copy-also="${DEMO}/mcp" data-note="Opening ChatGPT. The address is copied.">Open in ChatGPT</a>`, 'Paste the copied address in Settings, Apps, Create.'],
-  ['Browser', 'Any device', BOARD, false, `<a class="btn btn-ghost" href="${DEMO}/board" target="_blank" rel="noopener">Open the demo board</a>`, 'Click around. Changes reset.'],
-  ['Claude Code', 'Terminal', CLAUDE, true, copyCmd(connectLine(DEMO, 'claude')), 'Paste it in your terminal.'],
-  ['Codex', 'Terminal', OPENAI, true, copyCmd(connectLine(DEMO, 'codex')), 'Paste it in your terminal.'],
-];
-
-const COPY_JS = `<script>(function(){
-function copy(s){if(navigator.clipboard&&window.isSecureContext)return navigator.clipboard.writeText(s);var a=document.createElement('textarea');a.value=s;document.body.appendChild(a);a.select();try{document.execCommand('copy')}finally{a.remove()}return Promise.resolve()}
-var t=document.createElement('div');t.className='ak-toast';t.setAttribute('role','status');document.body.appendChild(t);var h;
-function toast(m){t.textContent=m;t.classList.add('on');clearTimeout(h);h=setTimeout(function(){t.classList.remove('on')},2400)}
-document.addEventListener('click',function(e){
-  var b=e.target.closest('[data-copy]');
-  if(b){copy(b.dataset.copy).then(function(){b.textContent='Copied';toast('Copied. Paste it in your terminal.');setTimeout(function(){b.textContent='Copy'},2000)});return}
-  var a=e.target.closest('[data-copy-also]');
-  if(a)copy(a.dataset.copyAlso).then(function(){toast(a.dataset.note)},function(){});
-});
-})();</script>`;
+// Two ways to run it, side by side and equal. The hosted button goes to the hosted agent-kanban (a preview in
+// demo mode until warOnSaaS's GitHub App is set up); self-hosting goes to the README's steps.
+const CREATE = 'https://agent-kanban-hosted.vercel.app/create';
+const SELF = `${REPO}#host-it-yourself`;
 
 const FEATURES = [
   ['g1', 'By client', 'Every task belongs to a client. Ideas can too. Filter anything by client.'],
@@ -122,14 +99,13 @@ export function agentKanbanPage() {
     description: 'A shared to-do board for people and their AI agents. Tasks, hand-offs and reviews in a GitHub repo, worked from Claude, ChatGPT, Claude Code or Codex.',
     current: 'agent-kanban',
     page: 'is-ak',
-    scripts: COPY_JS,
     body: `
 <main class="page">
 <section class="page-hero">
   <p class="kicker"><i class="px g2"></i>Unit 01<span class="sep"></span>AGPL-3.0<span class="ready">Ready</span></p>
   <h1>A shared to-do board for people and their AI agents.</h1>
   <p class="lede">Tasks, hand-offs, reviews, notes and ideas live as files in your private GitHub repo. Everyone works them from the AI app they already use.</p>
-  <div class="cta"><a class="btn" href="#try">Try it</a><a class="btn btn-ghost" href="${OWN}">Get your own board</a><a class="btn btn-ghost" href="${REPO}">GitHub</a></div>
+  <div class="cta"><a class="btn" href="${CREATE}">Create your board</a><a class="btn btn-ghost" href="${SELF}">Host it yourself, free</a><a class="btn btn-ghost" href="${REPO}">GitHub</a></div>
 </section>
 
 <section class="board-wrap" aria-label="Example board">
@@ -144,15 +120,21 @@ export function agentKanbanPage() {
   <div class="feat">${FEATURES.map(([g, t, d]) => `<div class="feat-i"><i class="px ${g}"></i><h3>${t}</h3><p>${d}</p></div>`).join('')}</div>
 </section>
 
-<section class="sec" id="try">
-  <h2>Try it from your AI app</h2>
-  <p class="ak-sub">Pick your app to connect to a demo board: a made-up team, no sign-in. Then type <b>start</b>.</p>
-  <div class="ak-apps">${TILES.map(([t, where, logo, term, action, hint]) => `<section class="ak-app"><div class="ak-app-top"><span class="ak-logo">${logo}${term ? '<i aria-hidden="true">&gt;_</i>' : ''}</span><div><h3>${t}</h3><p>${where}</p></div></div><div class="ak-act">${action}</div><p class="ak-hint">${hint}</p></section>`).join('')}</div>
-</section>
-
-<section class="sec ak-own">
-  <div><h2>Get your own board</h2><p>Your team, your private GitHub repo, the same one-click connect page.</p></div>
-  <a class="btn" href="${OWN}">Get your own board</a>
+<section class="sec" id="start">
+  <h2>Two ways to run it</h2>
+  <div class="ak-ways">
+    <div class="ak-way">
+      <h3>Create your board</h3>
+      <p>Sign in with GitHub, name your team, done. You land on your board with a few example cards, pick your AI app, and type <b>start</b>.</p>
+      <a class="btn" href="${CREATE}">Create your board</a>
+    </div>
+    <div class="ak-way">
+      <h3>Host it yourself, free</h3>
+      <p>Your server, your GitHub repo, no account with us. The steps take about 20 minutes.</p>
+      <a class="btn btn-ghost" href="${SELF}">Self-host steps</a>
+    </div>
+  </div>
+  <p class="ak-calm">Either way, your data is always in your own GitHub repo, and a board we host can move to your own hosting any time.</p>
 </section>
 </main>`,
   });
