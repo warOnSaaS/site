@@ -30,10 +30,10 @@ node scripts/sync-ui.mjs [path-to-ui-design]   # default $UI_DESIGN_DIR, then ..
 ```
 npm install     # agent-kanban from GitHub, for the example board
 npm run build   # dist/
-vercel build --prod && vercel deploy --prebuilt --prod --yes
+npx vercel@latest deploy --prod --yes
 ```
 
-Deploy prebuilt: Vercel's own build machines have no ui-design checkout.
+Vercel builds it remotely. `.vercelignore` (not `.gitignore`) decides what is uploaded, so the git-ignored `vendor/ui-design` goes up with the source and the build uses it: run the sync before deploying. Do not deploy prebuilt: a local `vercel build` wrote a routing config without the file handler and every page answered 404.
 
 Rules: no em dashes (the build fails on one). Plain words.
 
