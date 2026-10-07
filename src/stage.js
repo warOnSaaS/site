@@ -16,7 +16,8 @@ const S = { c: q.get('c') || 'streaming', t: q.get('t') || OPT.defaultTheme, v: 
 history.pushState = function (s, t, u) { try { history.replaceState(s, t, u); } catch {} };
 
 // Speed: a multiplier on every pause the agent takes.
-let speed = Number(S.s) || 1;
+const toSpeed = (x) => (x !== null && x !== '' && Number.isFinite(Number(x)) ? Number(x) : 1);
+let speed = toSpeed(S.s);
 const realTimeout = window.setTimeout.bind(window);
 window.setTimeout = (f, ms, ...a) => realTimeout(f, (ms || 0) * speed, ...a);
 const sleep = (ms) => new Promise((ok) => setTimeout(ok, ms));
@@ -32,14 +33,14 @@ function siteMode() {
 }
 function applyLook() {
   const theme = OPT.themes.find((x) => x.id === S.t) || OPT.themes[0];
+  const root = document.documentElement;
   const link = document.getElementById('theme');
-  if (link.getAttribute('href') !== theme.href) link.setAttribute('href', theme.href);
+  const href = theme.href || '';
+  if ((link.getAttribute('href') || '') !== href) { if (href) link.setAttribute('href', href); else link.removeAttribute('href'); }
+  root.dataset.scheme = theme.scheme;
   const want = siteMode();
-  document.documentElement.dataset.mode = theme.modes.includes(want) ? want : theme.modes[0];
-  for (const ax of OPT.axes || []) {
-    const val = S.axes?.[ax.id];
-    if (val) document.documentElement.setAttribute(ax.attr, val); else document.documentElement.removeAttribute(ax.attr);
-  }
+  root.dataset.mode = theme.modes.includes(want) ? want : theme.modes[0];
+  for (const ax of OPT.axes || []) root.setAttribute(ax.attr, S.axes?.[ax.id] || ax.default);
 }
 try {
   const host = window.parent !== window ? window.parent : null;
@@ -117,7 +118,7 @@ addEventListener('message', (e) => {
   if (e.origin !== location.origin || !e.data || typeof e.data !== 'object') return;
   const d = e.data, before = S.c + '|' + S.v;
   if (d.t) S.t = d.t;
-  if (d.s) { S.s = d.s; speed = Number(d.s) || 1; }
+  if (d.s != null) { S.s = d.s; speed = toSpeed(d.s); }
   if (d.axes) S.axes = d.axes;
   if (d.c) S.c = d.c;
   if (d.v) S.v = d.v;

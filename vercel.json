@@ -53,6 +53,10 @@
         {
           "key": "Strict-Transport-Security",
           "value": "max-age=63072000; includeSubDomains; preload"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'sha256-//scj7F+rrZeaUcBn5qicWa2IzovgrlXvLCViG+fgKo=' 'sha256-I0D0xuv1WWV7bTeULGecaxHwZkY7g0NiI2Y914OFLwo=' 'sha256-LTn0wlmN0DrqfA5WlCgjzoLaQFEkbjnXrxCNru8Qq4M=' 'sha256-T8wNnrE4hDpMPlR7xQKt1lh/GzdMDI3eoP9bg/lgRx8='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src 'self' https://scanner.waronsaas.com; form-action 'self' https://scanner.waronsaas.com; object-src 'none'; base-uri 'self'"
         }
       ]
     }
@@ -69,13 +73,23 @@
       "permanent": false
     },
     {
-      "source": "/whitepaper/(.+?)/?",
-      "destination": "https://protocol.waronsaas.com/whitepaper/$1",
+      "source": "/whitepaper.md",
+      "destination": "https://protocol.waronsaas.com/whitepaper.md",
       "permanent": false
     },
     {
-      "source": "/whitepaper.md",
+      "source": "/whitepaper.md/",
       "destination": "https://protocol.waronsaas.com/whitepaper.md",
+      "permanent": false
+    },
+    {
+      "source": "/whitepaper/:path+/",
+      "destination": "https://protocol.waronsaas.com/whitepaper/:path+",
+      "permanent": false
+    },
+    {
+      "source": "/whitepaper/:path+",
+      "destination": "https://protocol.waronsaas.com/whitepaper/:path+",
       "permanent": false
     },
     {
@@ -86,6 +100,16 @@
     {
       "source": "/log/",
       "destination": "https://protocol.waronsaas.com/log",
+      "permanent": false
+    },
+    {
+      "source": "/log/:path+/",
+      "destination": "https://protocol.waronsaas.com/log/:path+",
+      "permanent": false
+    },
+    {
+      "source": "/log/:path+",
+      "destination": "https://protocol.waronsaas.com/log/:path+",
       "permanent": false
     }
   ]

@@ -1,6 +1,7 @@
 import path from 'node:path';
 import fs from 'node:fs';
-import { layout, esc, GITHUB } from './layout.mjs';
+import { layout, esc, GITHUB, ORG, SITE_URL } from './layout.mjs';
+import { softwareLd } from './projects.mjs';
 
 // The example board is rendered at build time from agent-kanban's own example workspace and renderer,
 // so the picture is always the real product. AGENT_KANBAN_DIR points at a checkout; otherwise a sibling
@@ -95,8 +96,11 @@ const FEATURES = [
 
 export function agentKanbanPage() {
   return layout({
-    title: 'agent-kanban · warOnSaaS',
-    description: 'A shared to-do board for people and their AI agents. Tasks, hand-offs and reviews in a GitHub repo, worked from Claude, ChatGPT, Claude Code or Codex.',
+    title: 'agent-kanban · a GitHub board for people and AI agents',
+    description: 'A free shared to-do board for people and their AI agents. Tasks, hand-offs and reviews live in your GitHub repo, worked from Claude or ChatGPT.',
+    og: 'agent-kanban',
+    jsonld: [ORG, softwareLd('agent-kanban', { codeRepository: REPO, featureList: FEATURES.map(([, t]) => t) }),
+      { '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'warOnSaaS', item: SITE_URL + '/' }, { '@type': 'ListItem', position: 2, name: 'agent-kanban', item: SITE_URL + '/agent-kanban/' }] }],
     path: '/agent-kanban/',
     current: 'agent-kanban',
     page: 'is-ak',
@@ -119,6 +123,12 @@ export function agentKanbanPage() {
 <section class="sec">
   <h2>What it does</h2>
   <div class="feat">${FEATURES.map(([g, t, d]) => `<div class="feat-i"><i class="px ${g}"></i><h3>${t}</h3><p>${d}</p></div>`).join('')}</div>
+</section>
+
+<section class="sec">
+  <h2>How a day on the board goes</h2>
+  <p class="prose">You open your AI app and type <b>start</b>. Your agent reads the board in your team's GitHub repo and tells you what is yours today: the client tasks due, the reviews waiting on you, and the hand-offs a teammate's agent left overnight. You work a task with your agent; when you stop, it writes what was done and what is next into the task, and moves the card. The next person, or their agent, picks it up from exactly there. Reviews open the real work, the linked pages and files, and end in a verdict and a decision on the card.</p>
+  <p class="prose">Nothing lives in a database you rent. Every task, note and idea is a plain Markdown file in a private repo you own, with its full history. Who you are comes from your GitHub sign-in, and what you can see comes from one file, <code>people.yml</code>. The same board works for a team of two or twenty, and for any mix of people and agents. See also <a href="/crm/">the CRM</a>, which keeps your clients' contacts and deals the same way.</p>
 </section>
 
 <section class="sec" id="start">

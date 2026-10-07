@@ -1,7 +1,10 @@
 // The kit page: pick a component, see it live in the preview, switch theme, copy the code.
 // Every component has its own address (/kit/<id>/), so links and the back button work.
 (function () {
-  var R = JSON.parse(document.getElementById('kit-data').textContent);
+  var src = document.getElementById('kit-data').dataset.src;
+  fetch(src).then(function (r) { return r.json(); }).then(start);
+})();
+function start(R) {
   var OPT = R.options, byId = {};
   R.components.forEach(function (c) { byId[c.id] = c; });
   var $ = function (s, el) { return (el || document).querySelector(s); };
@@ -19,6 +22,7 @@
     tab: 0,
   };
   if (!OPT.themes.some(function (t) { return t.id === S.t; })) S.t = OPT.defaultTheme;
+  if (!OPT.speeds.some(function (x) { return x[0] === S.s; })) S.s = OPT.defaultSpeed;
   (OPT.axes || []).forEach(function (ax) { var v = store.get('axis-' + ax.id); if (v) S.axes[ax.id] = v; });
 
   var post = function (msg) { try { frame.contentWindow.postMessage(msg, location.origin); } catch (e) {} };
@@ -32,15 +36,20 @@
       onPick(b.dataset.v);
     };
   }
-  seg($('[data-themes]'), OPT.themes.map(function (t) { return [t.id, t.label]; }), S.t, function (v) { S.t = v; store.set('theme', v); post({ t: v }); drawInstall(); });
+  function pick(el, items, current, onPick) {
+    el.innerHTML = items.map(function (it) { return '<option value="' + it[0] + '"' + (it[0] === current ? ' selected' : '') + '>' + it[1] + '</option>'; }).join('');
+    el.onchange = function () { onPick(el.value); };
+  }
+  pick($('[data-themes]'), OPT.themes.map(function (t) { return [t.id, t.label]; }), S.t, function (v) { S.t = v; store.set('theme', v); post({ t: v }); drawInstall(); });
   seg($('[data-variants]'), [['answer', 'In an answer'], ['page', 'On a page']], S.v, function (v) { S.v = v; store.set('variant', v); post({ v: v }); drawTabs(); });
   var sp = $('[data-speed]');
   sp.innerHTML = OPT.speeds.map(function (x) { return '<option value="' + x[0] + '"' + (x[0] === S.s ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('');
   sp.onchange = function () { S.s = sp.value; store.set('speed', S.s); post({ s: S.s, replay: true }); };
   var axesBox = $('[data-axes]');
-  axesBox.innerHTML = (OPT.axes || []).map(function (ax) { return '<div class="seg seg-sm" data-axis="' + ax.id + '" role="group" aria-label="' + ax.label + '"></div>'; }).join('');
+  axesBox.innerHTML = (OPT.axes || []).map(function (ax) { return '<label class="speed"><span>' + ax.label + '</span><select data-axis="' + ax.id + '" aria-label="' + ax.label + '"></select></label>'; }).join('');
   (OPT.axes || []).forEach(function (ax) {
-    seg($('[data-axis="' + ax.id + '"]'), ax.values, S.axes[ax.id] || ax.values[0][0], function (v) { S.axes[ax.id] = v; store.set('axis-' + ax.id, v); post({ axes: S.axes }); });
+    if (!ax.values.some(function (v) { return v[0] === S.axes[ax.id]; })) delete S.axes[ax.id];
+    pick($('[data-axis="' + ax.id + '"]'), ax.values, S.axes[ax.id] || ax.default, function (v) { S.axes[ax.id] = v; store.set('axis-' + ax.id, v); post({ axes: S.axes }); drawInstall(); });
   });
   $('[data-replay]').onclick = function () { post({ replay: true }); };
 
@@ -56,7 +65,9 @@
   function drawInstall() {
     var t = OPT.themes.find(function (x) { return x.id === S.t; });
     var c = byId[S.c];
-    var lines = ['<link rel="stylesheet" href="' + R.site + '/ui/src/ui.css">', '<link rel="stylesheet" href="' + R.site + t.href + '">'];
+    var attrs = ' data-scheme="' + t.scheme + '"' + (OPT.axes || []).map(function (ax) { return ' ' + ax.attr + '="' + (S.axes[ax.id] || ax.default) + '"'; }).join('');
+    var lines = ['<html' + attrs + '>', '<link rel="stylesheet" href="' + R.site + '/ui/src/ui.css">', '<link rel="stylesheet" href="' + R.site + '/ui/src/tokens.css">'];
+    if (t.href) lines.push('<link rel="stylesheet" href="' + R.site + t.href + '">');
     if (c.kind === 'agent') lines.push('<script type="module" src="' + R.site + '/ui/layouts/boot.mjs" data-ui-boot data-content="/content.json"></script>');
     else if (c.id === 'table' || c.id === 'form') lines.push('<script type="module">import { enhance } from "' + R.site + '/ui/src/ui.mjs"; enhance();</script>');
     $('[data-install]').textContent = lines.join('\n');
@@ -114,4 +125,5 @@
   // the iframe starts with the address's component; send the saved look once it is up
   frame.addEventListener('load', function () { post({ t: S.t, v: S.v, s: S.s, axes: S.axes, c: S.c, replay: S.t !== OPT.defaultTheme || S.v !== 'answer' || S.s !== OPT.defaultSpeed }); });
   select(S.c, false, true);
-})();
+  try { if (frame.contentDocument && frame.contentDocument.readyState === 'complete') post({ t: S.t, v: S.v, s: S.s, axes: S.axes, c: S.c, replay: true }); } catch (e) {}
+}

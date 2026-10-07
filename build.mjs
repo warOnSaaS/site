@@ -29,41 +29,69 @@ for (const [name, src] of [['site.css', 'src/site.css'], ['site.js', 'src/site.j
 // ui-design, served as its own build serves it
 fs.cpSync('vendor/ui-design', path.join(out, 'ui'), { recursive: true });
 fs.rmSync(path.join(out, 'ui', 'SYNCED.json'));
+fs.rmSync(path.join(out, 'ui', 'src', 'tokens.mjs'), { force: true }); // read at build time only
 fs.cpSync('ui-themes', path.join(out, 'ui', 'themes'), { recursive: true });
 
 const { homePage } = await import('./src/home.mjs');
-const { kitPage, stagePage, KIT_IDS } = await import('./src/kit.mjs');
+const { kitPage, stagePage, KIT_IDS, kitData } = await import('./src/kit.mjs');
 const { agentKanbanPage, boardPage } = await import('./src/agent-kanban.mjs');
+const { crmPage, scannerPage } = await import('./src/project-pages.mjs');
+const { PROJECTS, SUITE, repoStatus } = await import('./src/projects.mjs');
+
+// the kit's component data, one fingerprinted file the kit page fetches
+{
+  const body = kitData();
+  const file = `assets/kit-data.${crypto.createHash('sha256').update(body).digest('hex').slice(0, 10)}.json`;
+  write(file, body);
+  HASHES['kit-data.json'] = '/' + file;
+}
+
+// Which repos are public, so no page links to a 404.
+const repos = await repoStatus();
+console.log('public repos: ' + Object.entries(repos).map(([k, v]) => `${k} ${v ? 'yes' : 'no'}`).join(', '));
+
+// Social cards: redraw any whose words changed when Playwright is here (never on Vercel), then ship og/.
+if (!process.env.VERCEL) {
+  const { drawCards } = await import('./scripts/og.mjs');
+  const drawn = await drawCards();
+  if (drawn === null) console.warn('og: Playwright not found, using the committed cards');
+  else if (drawn.length) console.log(`og: drew ${drawn.join(', ')} (commit og/)`);
+}
+fs.cpSync('og', path.join(out, 'og'), { recursive: true, filter: (f) => !f.endsWith('manifest.json') });
+fs.cpSync('img', path.join(out, 'img'), { recursive: true });
 
 write('wos.css', fs.readFileSync('kit/wos.css', 'utf8'));
-write('index.html', homePage());
+write('index.html', homePage({ repos }));
+write('crm/index.html', crmPage({ repoPublic: repos.crm }));
+write('scanner/index.html', scannerPage({ repoPublic: repos.scanner }));
 write('kit/index.html', kitPage(KIT_IDS[0]));
 for (const id of KIT_IDS) write(`kit/${id}/index.html`, kitPage(id));
 write('kit/stage/index.html', stagePage());
 write('agent-kanban/index.html', agentKanbanPage());
 write('agent-kanban/board/index.html', await boardPage());
-const { SITE_URL, SCANNER_URL } = await import('./src/layout.mjs');
+const { SITE_URL, SCANNER_URL, GITHUB } = await import('./src/layout.mjs');
 write('robots.txt', `User-agent: *\nAllow: /\nDisallow: /kit/stage/\nDisallow: /agent-kanban/board/\n\nSitemap: ${SITE_URL}/sitemap.xml\n`);
-const PAGES = ['/', '/agent-kanban/', ...KIT_IDS.map((id) => `/kit/${id}/`)];
+const PAGES = ['/', '/agent-kanban/', '/crm/', '/scanner/', ...KIT_IDS.map((id) => `/kit/${id}/`)];
 write('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${PAGES.map((p) => `  <url><loc>${SITE_URL}${p}</loc></url>`).join('\n')}\n</urlset>\n`);
+const P = PROJECTS;
 write('llms.txt', `# warOnSaaS
 
-> warOnSaaS builds free, open-source replacements for the software businesses rent by the month. Every project can be self-hosted for free, or hosted by us. Every project can be driven by AI agents over MCP.
+> warOnSaaS builds free, open-source replacements for the software businesses rent by the month. Every project can be self-hosted for free, or hosted by us. AI agents can drive every project over MCP, with the same tools the screens use.
 
 ## Projects
 
-- [agent-kanban](${SITE_URL}/agent-kanban/): a shared to-do board for people and their AI agents. Tasks, hand-offs and reviews live as files in the team's own GitHub repo, worked from Claude, ChatGPT, Claude Code or Codex. AGPL-3.0. Source: https://github.com/warOnSaaS/agent-kanban
-- [UI kit](${SITE_URL}/kit/): ui-design, the building blocks of a website people ask instead of scroll: streaming answers, cards, tables, forms, in plain HTML, CSS and JavaScript.
-- [Scanner](${SCANNER_URL}/): shows what ChatGPT, Claude and Google can read on any website, with a score out of 100 and the fix for every gap. Has an MCP server. Apache-2.0. Source: https://github.com/warOnSaaS/scanner
+- [agent-kanban](${SITE_URL}/agent-kanban/): ${P['agent-kanban'].about} ${P['agent-kanban'].license}. Create a hosted board: ${P['agent-kanban'].hosted}. Source: ${P['agent-kanban'].repo}
+- [CRM](${SITE_URL}/crm/): ${P.crm.about} ${P.crm.license}. Live demo with fictional data: ${P.crm.demo}. MCP endpoint on any install: /mcp.${repos.crm ? ` Source: ${P.crm.repo}` : ' Source opens on GitHub soon.'}
+- [Scanner](${SITE_URL}/scanner/): ${P.scanner.about} ${P.scanner.license}. Use it: ${P.scanner.hosted}. MCP: ${P.scanner.hosted}mcp. Command line: npx -y github:warOnSaaS/scanner example.com. Source: ${P.scanner.repo}
+- [UI kit](${SITE_URL}/kit/): ${P.kit.about} ${P.kit.license}. Every component has its own page, /kit/<id>/.
 
 ## Coming
 
-- A CRM that replaces Salesforce for small teams, with Salesforce import and MCP tools.
-- wOS, one app for a team and its agents: CRM, chat, meetings, email and a board around a conversation with the AI you choose.
+- wOS, the suite: ${SUITE.line} The CRM and the board load inside it, and each app switches on or off per team.${repos.suite ? ` Source: ${SUITE.repo}` : ''}
 
 ## Contact
 
-- GitHub: https://github.com/warOnSaaS
+- GitHub: ${GITHUB}
 - Email: hello@waronsaas.com
 `);
 write('favicon.svg', fs.readFileSync('vendor/ui-design/logo.svg', 'utf8'));
@@ -72,4 +100,43 @@ write('favicon.svg', fs.readFileSync('vendor/ui-design/logo.svg', 'utf8'));
 const files = fs.readdirSync(out, { recursive: true }).map(String).filter((f) => /\.(html|css|js|mjs|txt|json|svg)$/.test(f));
 const dashed = files.filter((f) => fs.readFileSync(path.join(out, f), 'utf8').includes('\u2014'));
 if (dashed.length) { console.error('em dash found in: ' + dashed.join(', ')); process.exit(1); }
+// Every page: a title search shows whole (65 characters at most), a description of 150 at most, a social card.
+const htmlPages = files.filter((f) => f.endsWith('index.html') && !/^(kit\/stage|agent-kanban\/board)\//.test(f));
+const bad = [];
+for (const f of htmlPages) {
+  const h = fs.readFileSync(path.join(out, f), 'utf8');
+  const dec = (x) => x.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+  const t = dec((h.match(/<title>([^<]*)<\/title>/) || [])[1] || '');
+  const d = dec((h.match(/<meta name="description" content="([^"]*)"/) || [])[1] || '');
+  const og = (h.match(/property="og:image" content="[^"]*\/og\/([\w-]+)\.png"/) || [])[1];
+  if (t.length < 20 || t.length > 65) bad.push(`${f}: title is ${t.length} characters`);
+  if (d.length < 70 || d.length > 150) bad.push(`${f}: description is ${d.length} characters`);
+  if (!og || !fs.existsSync(path.join(out, 'og', og + '.png'))) bad.push(`${f}: no social card image`);
+  for (const b of h.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) { try { JSON.parse(b[1]); } catch { bad.push(`${f}: structured data does not parse`); } }
+}
+// Private names never ship. The list lives in the git-ignored .names file, one per line.
+if (fs.existsSync('.names')) {
+  const names = fs.readFileSync('.names', 'utf8').split('\n').map((x) => x.trim()).filter((x) => x && !x.startsWith('#'));
+  for (const f of files) { const body = fs.readFileSync(path.join(out, f), 'utf8').toLowerCase(); for (const n of names) if (body.includes(n.toLowerCase())) bad.push(`${f}: private name "${n}"`); }
+}
+// The Content-Security-Policy in vercel.json allows inline scripts by their hash only. Every inline
+// script that ships must be listed there; `CSP_WRITE=1 npm run build` rewrites the list.
+{
+  const hashes = new Set();
+  for (const f of files.filter((x) => x.endsWith('.html'))) {
+    for (const m of fs.readFileSync(path.join(out, f), 'utf8').matchAll(/<script(?![^>]*\bsrc=)(?![^>]*type="application\/(?:ld\+)?json")[^>]*>([\s\S]*?)<\/script>/g)) {
+      if (m[1].trim()) hashes.add(`'sha256-${crypto.createHash('sha256').update(m[1]).digest('base64')}'`);
+    }
+  }
+  const vj = JSON.parse(fs.readFileSync('vercel.json', 'utf8'));
+  const h = vj.headers.find((x) => x.source === '/(.*)').headers.find((x) => x.key === 'Content-Security-Policy');
+  const listed = new Set((h?.value.match(/'sha256-[^']+'/g)) || []);
+  const missing = [...hashes].filter((x) => !listed.has(x));
+  if (process.env.CSP_WRITE && h) {
+    h.value = h.value.replace(/script-src [^;]*/, `script-src 'self' ${[...hashes].sort().join(' ')}`);
+    fs.writeFileSync('vercel.json', JSON.stringify(vj, null, 2) + '\n');
+    console.log(`csp: ${hashes.size} inline script hashes written to vercel.json`);
+  } else if (!h || missing.length) bad.push(`vercel.json Content-Security-Policy is missing ${missing.length} inline script hash(es); run CSP_WRITE=1 npm run build`);
+}
+if (bad.length) { console.error(bad.join('\n')); process.exit(1); }
 console.log(`built ${fs.readdirSync(out, { recursive: true }).length} files into ${out}/ (${KIT_IDS.length} kit components)`);

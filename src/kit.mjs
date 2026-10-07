@@ -1,6 +1,7 @@
 // The UI kit page: a component library you select from. Sidebar of components, one big live
 // preview (ui-design's own files, in an iframe), its code under it, and what it takes on the right.
-import { layout, esc, SITE_URL, ASSET } from './layout.mjs';
+import { layout, esc, SITE_URL, ASSET, ORG } from './layout.mjs';
+import { softwareLd } from './projects.mjs';
 import { COMPONENTS, CONTENT, GROUPS } from './kit-components.mjs';
 import { OPTIONS } from './kit-options.mjs';
 import { prettyHtml, prettyJson, highlight } from './code.mjs';
@@ -9,7 +10,7 @@ import { renderBlock } from '../vendor/ui-design/src/render.mjs';
 const ctx = { label: (id) => CONTENT.questions[id]?.prompt ?? id, href: (id) => '#' + id, avatar: CONTENT.site.avatar };
 const GROUP_ICON = { Agent: 'g1', Blocks: 'g2', Page: 'g3' };
 const tab = (label, lang, text) => ({ label, lang, text, hl: highlight(text, lang) });
-const head = (theme = 'midnight') => `<link rel="stylesheet" href="/ui/src/ui.css">\n<link rel="stylesheet" href="/ui/themes/${theme}.css">\n\n`;
+const head = () => `<!-- on <html>: data-scheme="midnight" data-shape="round" data-type="grotesk" and the rest -->\n<link rel="stylesheet" href="/ui/src/ui.css">\n<link rel="stylesheet" href="/ui/src/tokens.css">\n\n`;
 
 function agentShellCode(c) {
   const Q = CONTENT.questions;
@@ -74,10 +75,12 @@ export function kitPage(id) {
   const nav = GROUPS.map((g) => `<div class="kit-g"><h3><i class="px ${GROUP_ICON[g]}"></i>${g}</h3>${PREPARED.filter((x) => x.group === g).map((x) => `<a href="/kit/${x.id}/" data-c="${x.id}" aria-current="${x.id === id}">${esc(x.name)}${COMPONENTS.find((k) => k.id === x.id).live ? '<span class="live" title="Plays live">live</span>' : ''}</a>`).join('')}</div>`).join('');
   const chips = PREPARED.map((x) => `<a href="/kit/${x.id}/" data-c="${x.id}" aria-current="${x.id === id}">${esc(x.name)}</a>`).join('');
   const first = c.code[0];
-  const data = { site: SITE_URL, options: OPTIONS, components: PREPARED.map(({ id, name, group, kind, blurb, notes, fieldsHtml, code, codePage }) => ({ id, name, group, kind, blurb, notes, fieldsHtml, code, codePage })) };
+  const desc = `${c.blurb} A free UI kit component: see it live, copy the code.`;
   return layout({
-    title: `${c.name} · UI kit · warOnSaaS`,
-    description: `${c.blurb} Part of the warOnSaaS UI kit: pick a component, see it live, copy the code.`,
+    title: `${c.name} · free HTML UI kit component · warOnSaaS`,
+    description: desc.length <= 150 ? desc : c.blurb.length <= 150 ? c.blurb : c.blurb.slice(0, 147).replace(/\s+\S*$/, '') + '...',
+    og: 'kit',
+    jsonld: [ORG, softwareLd('kit'), { '@type': 'WebPage', name: `${c.name}, a UI kit component`, url: `${SITE_URL}/kit/${c.id}/`, description: c.blurb, isPartOf: { '@type': 'WebSite', url: SITE_URL + '/' } }],
     path: `/kit/${c.id}/`,
     current: 'kit',
     page: 'is-kit',
@@ -95,7 +98,7 @@ export function kitPage(id) {
 
   <section class="kit-main" aria-label="Preview">
     <div class="kit-bar">
-      <div class="seg" data-themes role="group" aria-label="Theme"></div>
+      <label class="speed"><span>Scheme</span><select data-themes aria-label="Colour scheme"></select></label>
       <div class="seg" data-variants role="group" aria-label="Where it sits"${c.kind === 'block' ? '' : ' hidden'}></div>
       <span data-axes class="kit-axes"></span>
       <span class="kit-bar-r">
@@ -123,17 +126,22 @@ export function kitPage(id) {
     <div data-notes-wrap${c.notes.length ? '' : ' hidden'}><h2>How it behaves</h2><ul class="checks" data-notes>${c.notes.map((n) => `<li>${esc(n)}</li>`).join('')}</ul></div>
   </aside>
 </div>
-<script type="application/json" id="kit-data">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`,
+<script type="application/json" id="kit-data" data-src="${ASSET('kit-data.json')}"></script>`,
     scripts: `<script src="${ASSET('kit.js')}" defer></script>`,
   }).replace('<body class="is-kit">', `<body class="is-kit" data-component="${id}">`);
 }
 
 export const KIT_IDS = PREPARED.map((c) => c.id);
 
+// Every component's code and notes, loaded by the kit page as one file so each page stays light.
+export function kitData() {
+  return JSON.stringify({ site: SITE_URL, options: OPTIONS, components: PREPARED.map(({ id, name, group, kind, blurb, notes, fieldsHtml, code, codePage }) => ({ id, name, group, kind, blurb, notes, fieldsHtml, code, codePage })) });
+}
+
 // The preview page the iframe loads.
 export function stagePage() {
   const registry = { options: OPTIONS, content: CONTENT, components: COMPONENTS.map(({ id, name, group, kind, start, q, blocks, html, bare }) => ({ id, name, group, kind, start, q, blocks, html, bare })) };
-  const themes = Object.fromEntries(OPTIONS.themes.map((t) => [t.id, t.href]));
+  const themes = Object.fromEntries(OPTIONS.themes.map((t) => [t.id, [t.scheme, t.href || '']]));
   return `<!doctype html>
 <html lang="en" data-mode="dark">
 <head>
@@ -141,8 +149,9 @@ export function stagePage() {
 <title>UI kit preview · warOnSaaS</title>
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="/ui/src/ui.css">
-<link rel="stylesheet" id="theme" href="${OPTIONS.themes[0].href}">
-<script>(function(){var t=new URLSearchParams(location.search).get('t'),h=${JSON.stringify(themes)};if(h[t])document.getElementById('theme').href=h[t]})()</script>
+<link rel="stylesheet" href="/ui/src/tokens.css">
+<link rel="stylesheet" id="theme">
+<script>(function(){var t=new URLSearchParams(location.search).get('t'),h=${JSON.stringify(themes)},e=h[t]||h[${JSON.stringify(OPTIONS.defaultTheme)}],r=document.documentElement;r.dataset.scheme=e[0];if(e[1])document.getElementById('theme').href=e[1];var d=${JSON.stringify(Object.fromEntries(OPTIONS.axes.map((a) => [a.attr, a.default])))};for(var k in d)r.setAttribute(k,d[k])})()</script>
 <style>
 html,body{min-height:100%}
 .st-page{width:min(680px,100% - 40px);margin:56px auto}
