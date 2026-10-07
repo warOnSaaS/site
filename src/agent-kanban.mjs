@@ -79,32 +79,33 @@ ${board}
 </html>`;
 }
 
-const APPS = [
-  ['Claude Code', 'claude mcp add --transport http --scope user agent-kanban https://<instance>/mcp', 'Then /mcp, pick agent-kanban, Authenticate.'],
-  ['Codex', 'codex mcp add agent-kanban --url https://<instance>/mcp', 'Then codex mcp login agent-kanban.'],
-  ['Claude app', 'Settings, Connectors, Add custom connector: https://<instance>/mcp', 'Web, desktop and phone. Add it once in a browser.'],
-  ['ChatGPT', 'A GPT with Actions from /openapi.json', 'Any paid plan, web and phone. Setup in docs/chatgpt-gpt.md.'],
-  ['Browser', 'https://<instance>/board', 'Read-only board, sign in with GitHub.'],
+// The "use it" moment: the same app tiles every board's front page shows, pointed at the public demo board
+// (agent-kanban with DEMO_BOARD=1: a made-up team, no sign-in). Logos and links come from agent-kanban itself.
+const DEMO = 'https://agent-kanban-demo.vercel.app';
+const OWN = `${REPO}#get-your-own-board`;
+const { CLAUDE, OPENAI, BOARD } = await import(path.join(AK, 'lib/logos.mjs'));
+const { claudeInstallLink, connectLine, CHATGPT_APPS } = await import(path.join(AK, 'lib/connect.mjs'));
+
+const copyCmd = (line) => `<div class="ak-cmd"><code>${esc(line)}</code><button type="button" class="btn ak-copy" data-copy="${esc(line)}" aria-label="Copy the command">Copy</button></div>`;
+const TILES = [
+  ['Claude', 'Web, desktop and phone', CLAUDE, false, `<a class="btn" href="${esc(claudeInstallLink('agent-kanban demo', `${DEMO}/mcp`))}" target="_blank" rel="noopener" data-copy-also="${DEMO}/mcp" data-note="Opening Claude. The address is copied too.">Add to Claude</a>`, 'Click Add, then Connect.'],
+  ['ChatGPT', 'Web, with developer mode on', OPENAI, false, `<a class="btn" href="${CHATGPT_APPS}" target="_blank" rel="noopener" data-copy-also="${DEMO}/mcp" data-note="Opening ChatGPT. The address is copied.">Open in ChatGPT</a>`, 'Paste the copied address in Settings, Apps, Create.'],
+  ['Browser', 'Any device', BOARD, false, `<a class="btn btn-ghost" href="${DEMO}/board" target="_blank" rel="noopener">Open the demo board</a>`, 'Click around. Changes reset.'],
+  ['Claude Code', 'Terminal', CLAUDE, true, copyCmd(connectLine(DEMO, 'claude')), 'Paste it in your terminal.'],
+  ['Codex', 'Terminal', OPENAI, true, copyCmd(connectLine(DEMO, 'codex')), 'Paste it in your terminal.'],
 ];
 
-const COMMANDS = [
-  ['start', 'Welcome, what is waiting for you, the commands.'],
-  ['check tasks', "What's assigned to you, new things first."],
-  ['review', 'Opens the actual work, says READY or NOT READY, up to 3 issues, then approve, send back or meet.'],
-  ['new task', 'Creates one. Your agent asks only what it cannot work out.'],
-  ['assign task', 'Gives a task to someone, or back to up for grabs.'],
-  ['hand off task', 'Passes work on with what you did and what is next. Their agent picks it up.'],
-  ['status', 'Every task and where it stands.'],
-  ['view kanban', 'Draws this board inside the chat.'],
-];
-
-const ENV = [
-  ['WORKSPACE_REPO', 'owner/repo of the private workspace repo'],
-  ['GITHUB_TOKEN', 'Can read and write that repo'],
-  ['GITHUB_OAUTH_CLIENT_ID, GITHUB_OAUTH_CLIENT_SECRET', 'Your GitHub OAuth app. Callback: https://<instance>/oauth/github/callback'],
-  ['OAUTH_SECRET', 'Long random string'],
-  ['WORKSPACE_NAME, WORKSPACE_TZ, WORKSPACE_CONTACT', 'Name, time zone, who people message when stuck'],
-];
+const COPY_JS = `<script>(function(){
+function copy(s){if(navigator.clipboard&&window.isSecureContext)return navigator.clipboard.writeText(s);var a=document.createElement('textarea');a.value=s;document.body.appendChild(a);a.select();try{document.execCommand('copy')}finally{a.remove()}return Promise.resolve()}
+var t=document.createElement('div');t.className='ak-toast';t.setAttribute('role','status');document.body.appendChild(t);var h;
+function toast(m){t.textContent=m;t.classList.add('on');clearTimeout(h);h=setTimeout(function(){t.classList.remove('on')},2400)}
+document.addEventListener('click',function(e){
+  var b=e.target.closest('[data-copy]');
+  if(b){copy(b.dataset.copy).then(function(){b.textContent='Copied';toast('Copied. Paste it in your terminal.');setTimeout(function(){b.textContent='Copy'},2000)});return}
+  var a=e.target.closest('[data-copy-also]');
+  if(a)copy(a.dataset.copyAlso).then(function(){toast(a.dataset.note)},function(){});
+});
+})();</script>`;
 
 const FEATURES = [
   ['g1', 'By client', 'Every task belongs to a client. Ideas can too. Filter anything by client.'],
@@ -115,21 +116,20 @@ const FEATURES = [
   ['g2', 'Plain files', 'Markdown in your repo, with history. Leave any time and keep everything.'],
 ];
 
-const steps = (items) => `<ol class="steps">${items.map(([t, d]) => `<li><b>${t}</b>${d ? `<span>${d}</span>` : ''}</li>`).join('')}</ol>`;
-
 export function agentKanbanPage() {
   return layout({
     title: 'agent-kanban · warOnSaaS',
     description: 'A shared to-do board for people and their AI agents. Tasks, hand-offs and reviews in a GitHub repo, worked from Claude, ChatGPT, Claude Code or Codex.',
     current: 'agent-kanban',
     page: 'is-ak',
+    scripts: COPY_JS,
     body: `
 <main class="page">
 <section class="page-hero">
   <p class="kicker"><i class="px g2"></i>Unit 01<span class="sep"></span>AGPL-3.0<span class="ready">Ready</span></p>
   <h1>A shared to-do board for people and their AI agents.</h1>
   <p class="lede">Tasks, hand-offs, reviews, notes and ideas live as files in your private GitHub repo. Everyone works them from the AI app they already use.</p>
-  <div class="cta"><a class="btn" href="${REPO}">Get it on GitHub</a><a class="btn btn-ghost" href="#join">How to join</a><a class="btn btn-ghost" href="#run">Run your own</a></div>
+  <div class="cta"><a class="btn" href="#try">Try it</a><a class="btn btn-ghost" href="${OWN}">Get your own board</a><a class="btn btn-ghost" href="${REPO}">GitHub</a></div>
 </section>
 
 <section class="board-wrap" aria-label="Example board">
@@ -144,37 +144,15 @@ export function agentKanbanPage() {
   <div class="feat">${FEATURES.map(([g, t, d]) => `<div class="feat-i"><i class="px ${g}"></i><h3>${t}</h3><p>${d}</p></div>`).join('')}</div>
 </section>
 
-<section class="sec split" id="join">
-  <div>
-    <h2>How to join</h2>
-    ${steps([['Get the instructions file.', 'https://&lt;instance&gt;/INSTRUCTIONS.md. It holds no secrets.'], ['Hand it to your agent.', 'It works out what it is and walks you through: GitHub account, connect, sign in.'], ['Type start.', '']])}
-  </div>
-  <div>
-    <h2>Then just type</h2>
-    <div class="tbl"><table><tbody>${COMMANDS.map(([c, d]) => `<tr><td class="nowrap"><code>${esc(c)}</code></td><td>${esc(d)}</td></tr>`).join('')}</tbody></table></div>
-  </div>
+<section class="sec" id="try">
+  <h2>Try it from your AI app</h2>
+  <p class="ak-sub">Pick your app to connect to a demo board: a made-up team, no sign-in. Then type <b>start</b>.</p>
+  <div class="ak-apps">${TILES.map(([t, where, logo, term, action, hint]) => `<section class="ak-app"><div class="ak-app-top"><span class="ak-logo">${logo}${term ? '<i aria-hidden="true">&gt;_</i>' : ''}</span><div><h3>${t}</h3><p>${where}</p></div></div><div class="ak-act">${action}</div><p class="ak-hint">${hint}</p></section>`).join('')}</div>
 </section>
 
-<section class="sec">
-  <h2>Where it works</h2>
-  <div class="tbl"><table><thead><tr><th>App</th><th>Connect</th><th>Note</th></tr></thead><tbody>
-    ${APPS.map(([a, c, n]) => `<tr><td class="nowrap"><b>${a}</b></td><td><code>${esc(c)}</code></td><td class="dim">${esc(n)}</td></tr>`).join('')}
-  </tbody></table></div>
-</section>
-
-<section class="sec split" id="run">
-  <div>
-    <h2>Run your own</h2>
-    ${steps([['Make a private workspace repo.', 'Copy example-workspace/ into it. List your people in people.yml by GitHub username.'], ['Make a GitHub OAuth app.', 'github.com/settings/developers. Callback: https://&lt;instance&gt;/oauth/github/callback'], ['Deploy.', 'Vercel, or any host that runs Node. Set the settings on the right.'], ['Send people INSTRUCTIONS.md.', '']])}
-  </div>
-  <div>
-    <h2>Settings</h2>
-    <div class="tbl"><table><tbody>${ENV.map(([v, d]) => `<tr><td><code>${esc(v)}</code></td><td>${esc(d)}</td></tr>`).join('')}</tbody></table></div>
-    <pre class="code-block"><code>git clone ${REPO}
-cd agent-kanban && npm install
-npm test        # end-to-end tests on the example workspace
-npm run dev     # local server on the example workspace</code></pre>
-  </div>
+<section class="sec ak-own">
+  <div><h2>Get your own board</h2><p>Your team, your private GitHub repo, the same one-click connect page.</p></div>
+  <a class="btn" href="${OWN}">Get your own board</a>
 </section>
 </main>`,
   });
