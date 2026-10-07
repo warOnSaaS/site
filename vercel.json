@@ -64,6 +64,11 @@
       "permanent": false
     },
     {
+      "source": "/whitepaper/",
+      "destination": "https://protocol.waronsaas.com/whitepaper",
+      "permanent": false
+    },
+    {
       "source": "/whitepaper/:path*",
       "destination": "https://protocol.waronsaas.com/whitepaper/:path*",
       "permanent": false
@@ -75,6 +80,11 @@
     },
     {
       "source": "/log",
+      "destination": "https://protocol.waronsaas.com/log",
+      "permanent": false
+    },
+    {
+      "source": "/log/",
       "destination": "https://protocol.waronsaas.com/log",
       "permanent": false
     }

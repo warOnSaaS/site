@@ -81,7 +81,7 @@ ${board}
 
 // Two ways to run it, side by side and equal. The hosted button goes to the hosted agent-kanban (a preview in
 // demo mode until warOnSaaS's GitHub App is set up); self-hosting goes to the README's steps.
-const CREATE = 'https://agent-kanban-hosted.vercel.app/create';
+const CREATE = 'https://kanban.waronsaas.com/create';
 const SELF = `${REPO}#host-it-yourself`;
 
 const FEATURES = [
