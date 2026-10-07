@@ -42,7 +42,30 @@ for (const id of KIT_IDS) write(`kit/${id}/index.html`, kitPage(id));
 write('kit/stage/index.html', stagePage());
 write('agent-kanban/index.html', agentKanbanPage());
 write('agent-kanban/board/index.html', await boardPage());
-write('robots.txt', 'User-agent: *\nAllow: /\nDisallow: /kit/stage/\n');
+const { SITE_URL, SCANNER_URL } = await import('./src/layout.mjs');
+write('robots.txt', `User-agent: *\nAllow: /\nDisallow: /kit/stage/\nDisallow: /agent-kanban/board/\n\nSitemap: ${SITE_URL}/sitemap.xml\n`);
+const PAGES = ['/', '/agent-kanban/', ...KIT_IDS.map((id) => `/kit/${id}/`)];
+write('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${PAGES.map((p) => `  <url><loc>${SITE_URL}${p}</loc></url>`).join('\n')}\n</urlset>\n`);
+write('llms.txt', `# warOnSaaS
+
+> warOnSaaS builds free, open-source replacements for the software businesses rent by the month. Every project can be self-hosted for free, or hosted by us. Every project can be driven by AI agents over MCP.
+
+## Projects
+
+- [agent-kanban](${SITE_URL}/agent-kanban/): a shared to-do board for people and their AI agents. Tasks, hand-offs and reviews live as files in the team's own GitHub repo, worked from Claude, ChatGPT, Claude Code or Codex. AGPL-3.0. Source: https://github.com/warOnSaaS/agent-kanban
+- [UI kit](${SITE_URL}/kit/): ui-design, the building blocks of a website people ask instead of scroll: streaming answers, cards, tables, forms, in plain HTML, CSS and JavaScript.
+- [Scanner](${SCANNER_URL}/): shows what ChatGPT, Claude and Google can read on any website, with a score out of 100 and the fix for every gap. Has an MCP server. Apache-2.0. Source: https://github.com/warOnSaaS/scanner
+
+## Coming
+
+- A CRM that replaces Salesforce for small teams, with Salesforce import and MCP tools.
+- wOS, one app for a team and its agents: CRM, chat, meetings, email and a board around a conversation with the AI you choose.
+
+## Contact
+
+- GitHub: https://github.com/warOnSaaS
+- Email: hello@waronsaas.com
+`);
 write('favicon.svg', fs.readFileSync('vendor/ui-design/logo.svg', 'utf8'));
 
 // No em dashes anywhere in what ships.

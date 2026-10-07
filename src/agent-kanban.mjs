@@ -97,6 +97,7 @@ export function agentKanbanPage() {
   return layout({
     title: 'agent-kanban · warOnSaaS',
     description: 'A shared to-do board for people and their AI agents. Tasks, hand-offs and reviews in a GitHub repo, worked from Claude, ChatGPT, Claude Code or Codex.',
+    path: '/agent-kanban/',
     current: 'agent-kanban',
     page: 'is-ak',
     body: `

@@ -1,6 +1,6 @@
 import { layout, tank, GITHUB } from './layout.mjs';
 
-const SCANNER = 'https://waronsaas-scanner.vercel.app';
+import { SCANNER_URL as SCANNER, SITE_URL } from './layout.mjs';
 const PX = { 1: 'g2', 2: 'g1', 3: 'g4' };
 
 const unit = ({ n, cls, name, line, facts, viz, open, more, extra = '' }) => `
@@ -18,7 +18,9 @@ const unit = ({ n, cls, name, line, facts, viz, open, more, extra = '' }) => `
 export function homePage() {
   return layout({
     title: 'warOnSaaS · free tools that replace the software you rent',
-    description: 'warOnSaaS builds open-source replacements for software businesses rent by the month: agent-kanban, a shared board for people and their AI agents, a UI kit for websites you can ask, and a scanner that shows what AI assistants can read on any website.',
+    description: 'Free, open-source replacements for the software you rent: a board for people and their AI agents, a UI kit, and an AI readiness scanner.',
+    path: '/',
+    head: `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@type': 'Organization', name: 'warOnSaaS', url: SITE_URL + '/', logo: SITE_URL + '/favicon.svg', sameAs: [GITHUB], description: 'Free, open-source replacements for the software businesses rent by the month.' })}</script>`,
     page: 'is-home',
     body: `
 <main class="home">

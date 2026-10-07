@@ -78,6 +78,7 @@ export function kitPage(id) {
   return layout({
     title: `${c.name} · UI kit · warOnSaaS`,
     description: `${c.blurb} Part of the warOnSaaS UI kit: pick a component, see it live, copy the code.`,
+    path: `/kit/${c.id}/`,
     current: 'kit',
     page: 'is-kit',
     body: `

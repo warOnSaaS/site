@@ -4,8 +4,79 @@
   "cleanUrls": true,
   "trailingSlash": true,
   "headers": [
-    { "source": "/wos.css", "headers": [{ "key": "Access-Control-Allow-Origin", "value": "*" }, { "key": "Cache-Control", "value": "public, max-age=3600" }] },
-    { "source": "/ui/(.*)", "headers": [{ "key": "Access-Control-Allow-Origin", "value": "*" }, { "key": "Cache-Control", "value": "public, max-age=3600" }] },
-    { "source": "/assets/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] }
+    {
+      "source": "/wos.css",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
+    },
+    {
+      "source": "/ui/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/whitepaper",
+      "destination": "https://protocol.waronsaas.com/whitepaper",
+      "permanent": false
+    },
+    {
+      "source": "/whitepaper/:path*",
+      "destination": "https://protocol.waronsaas.com/whitepaper/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/whitepaper.md",
+      "destination": "https://protocol.waronsaas.com/whitepaper.md",
+      "permanent": false
+    },
+    {
+      "source": "/log",
+      "destination": "https://protocol.waronsaas.com/log",
+      "permanent": false
+    }
   ]
 }
