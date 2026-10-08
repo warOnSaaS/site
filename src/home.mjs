@@ -40,7 +40,7 @@ export function homePage({ repos = {}, upcoming = {} } = {}) {
       acts: actions({ open: [`Open ${name}`, u.url], self: u.repoPublic ? u.repo : u.url, repo: u.repoPublic ? u.repo : null }) });
   };
   return layout({
-    title: 'warOnSaaS · run your whole business with AI agents, free',
+    title: 'warOnSaaS · free, open-source apps to run your business with AI',
     description: 'wOS is free, open-source software for your whole business: CRM, email, chat, meetings and a team board in one app your AI agents can run.',
     path: '/',
     jsonld: [ORG, { '@type': 'WebSite', '@id': SITE_URL + '/#site', name: 'warOnSaaS', url: SITE_URL + '/', publisher: { '@id': ORG['@id'] } },

@@ -1,8 +1,9 @@
 # warOnSaaS site
 
-The hub for warOnSaaS's open-source projects: **agent-kanban**, **the CRM**, **the Scanner** and **the UI kit**, with the wOS suite shown as coming.
+The home of wOS and its apps. The home page leads with **wOS**, the suite, then the apps in the order a business buyer cares about (CRM, Email, Chat, Meetings, Board, then Decks and Sheets while they are built), why it is different, and the free tools (**Scanner**, **UI kit**). Every product card names what it replaces and has three actions: open it, Host it yourself, free (same weight), and GitHub.
 
-- `/` home: each project with a live preview.
+- `/` home. Decks and Sheets show "Building now" until decks.waronsaas.com and sheets.waronsaas.com answer 200 at build time.
+- `/suite/`, `/chat/`, `/email/`, `/meet/` (`src/app-pages.mjs`): what it does, a real screenshot of the live site in both themes, how agents drive it over MCP, what self-hosting needs (from each README), and the limits.
 - `/kit/` the UI kit as a component library. Pick a component in the sidebar, watch it live in the preview (answers stream in), switch theme, copy the code. Every component has its own address, `/kit/<id>/`.
 - `/crm/` the CRM: what it does, a picture of the live demo (crm.waronsaas.com refuses to be framed), Salesforce import, agents, and "Try the demo" beside "Host it yourself, free".
 - `/scanner/` the Scanner: a scan box, the live scan from scanner.waronsaas.com/embed, the MCP and command line, and the repo.
@@ -29,7 +30,8 @@ The sync reads ui-design's `main` branch through git (`UI_DESIGN_REF` to change 
 
 - `src/projects.mjs` every project in one list: the home cards, pages, `llms.txt`, the sitemap and the structured data read from it. The build asks GitHub whether each repo is public, so no page links to a 404 (the CRM's self-host link points at the steps on `/crm/` until its repo is public; the suite link appears once `warOnSaaS/suite` is public).
 - `scripts/og.mjs` draws the 1200x630 social cards from one HTML template with Playwright into `og/`, which is committed because Vercel's build has no browser. A local build redraws any card whose words changed (Playwright from `PLAYWRIGHT_PATH`, `node_modules` or `~/crm/node_modules`). `node scripts/og.mjs --all` redraws all.
-- `img/` screenshots used on the pages, as WebP.
+- `img/` screenshots used on the pages, as WebP. `<name>-light.webp` and `<name>-dark.webp` are Playwright shots of the live sites at 1440x900; `themedShot()` shows the one that matches the theme, and the other is never fetched.
+- The header has one Products menu (a `<details>`, no script); the menu and the footer both read `MENU` in `src/layout.mjs`.
 - The build fails when a page's title is over 65 characters, its description is not 70 to 150, it has no social card, its structured data does not parse, or a name from the git-ignored `.names` file appears in what ships.
 - `vercel.json` sends a Content-Security-Policy that allows inline scripts by hash only. When an inline script changes, the build fails and says so; `CSP_WRITE=1 npm run build` rewrites the hashes.
 - Score pages with the scanner: `npx -y github:warOnSaaS/scanner waronsaas.com` scores the home page only, so score other pages by pointing its home request at them (see the scanner's library `scan(host, { fetchImpl })`).

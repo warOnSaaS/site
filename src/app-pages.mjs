@@ -24,6 +24,7 @@ const README_HOST = { chat: '#self-hosting-in-five-minutes', email: '#host-it-yo
 
 export const APPS = {
   suite: {
+    kick: 'Every app in one',
     title: 'wOS · one open-source app for your team and its AI agents',
     description: 'wOS is one free, open-source app for a team and its AI agents: Agents, board, CRM, Chat, Email and Meetings, any model, self-hosted or hosted.',
     color: 'g1', tag: 'Live demo', open: 'Try the demo',
@@ -65,6 +66,7 @@ WOS_SOLO=1 npm start     # http://localhost:8080, SQLite in ./.data`,
     ],
   },
   chat: {
+    kick: 'Replaces Slack',
     title: 'Chat · a free, open-source Slack alternative with agents',
     description: 'Free, open-source team chat like Slack: channels, threads, search and files, with AI agents you can @mention. Self-host it with one command.',
     color: 'g2', tag: 'Live demo', open: 'Try the demo',
@@ -103,6 +105,7 @@ docker compose up -d     # Postgres and the chat, on http://localhost:3995`,
     ],
   },
   email: {
+    kick: 'Replaces Gmail and Superhuman',
     title: 'Email · free, open-source email for small teams',
     description: 'Fast, open-source email on the mailbox you already have: sorted for you, AI drafts you send yourself, and one address that runs wOS by email.',
     color: 'g4', tag: 'Live demo', open: 'Try the demo',
@@ -141,6 +144,7 @@ docker compose up -d     # the app and Postgres on http://localhost:3990`,
     ],
   },
   meet: {
+    kick: 'Replaces Zoom',
     title: 'Meetings · free, open-source video calls, encrypted',
     description: 'Free, open-source video meetings like Zoom: small calls go straight between people, calls are encrypted end to end, and webinars are built in.',
     color: 'g3', tag: 'Live', open: 'Start a meeting',
@@ -192,7 +196,7 @@ export function appPage(id, repos) {
     body: `
 <main class="page">
 <section class="page-hero">
-  <p class="kicker"><i class="px ${a.color}"></i>Unit 0${p.unit}<span class="sep"></span>${p.license}<span class="ready">${a.tag}</span></p>
+  <p class="kicker"><i class="px ${a.color}"></i>${a.kick}<span class="sep"></span>${p.license}<span class="ready">${a.tag}</span></p>
   <h1>${a.h1}</h1>
   <p class="lede">${a.lede}</p>
   ${actions({ open: [a.open, p.live], self, repo: pub ? p.repo : null })}
@@ -227,7 +231,7 @@ export function appPage(id, repos) {
   <div class="ak-ways host-ways">
     <div class="ak-way">
       <h3>Use ours</h3>
-      <p>The live ${id === 'meet' ? 'site' : 'demo'} at ${p.live.replace('https://', '').replace(/\/$/, '')}.${id === 'suite' ? ' Hosting with us, at what it costs doubled and shown openly, is coming soon.' : ''}</p>
+      <p>The live ${id === 'meet' ? 'site' : 'demo'} at ${p.live.replace('https://', '').replace(/\/$/, '')}.${id === 'suite' ? ' Hosting with us, at our cost plus a fair margin shown openly, is coming soon.' : ''}</p>
       <a class="btn" href="${p.live}">${a.open}</a>
     </div>
     <div class="ak-way">
